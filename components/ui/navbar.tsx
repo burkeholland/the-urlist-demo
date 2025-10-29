@@ -75,6 +75,7 @@ export function Navbar() {
           onClick={toggleMenu}
           aria-label="Toggle menu"
           aria-expanded={isOpen}
+          aria-controls="mobile-menu"
         >
           {isOpen ? (
             <X className="size-5" />
@@ -86,7 +87,7 @@ export function Navbar() {
 
       {/* Mobile menu */}
       {isOpen && (
-        <div className="border-t border-border bg-background md:hidden">
+        <div id="mobile-menu" className="border-t border-border bg-background md:hidden">
           <div className="space-y-1 px-4 pb-4 pt-2">
             {menuItems.map((item) => {
               const Icon = item.icon

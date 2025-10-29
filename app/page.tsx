@@ -1,4 +1,8 @@
-import { ArrowRight, Check } from "lucide-react";
+"use client";
+
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -18,6 +22,27 @@ const featureHighlights = [
 ];
 
 export default function Home() {
+  const router = useRouter();
+  const [link, setLink] = React.useState("");
+  const [error, setError] = React.useState("");
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedLink = link.trim();
+
+    if (!trimmedLink) {
+      setError("Please enter a link to continue.");
+      return;
+    }
+
+    try {
+      new URL(trimmedLink);
+      setError("");
+      router.push(`/new?link=${encodeURIComponent(trimmedLink)}`);
+    } catch {
+      setError("That link does not look valid. Try again.");
+    }
+  };
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background text-foreground">
@@ -34,7 +59,7 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="w-full max-w-md space-y-4 text-left">
+      <form className="w-full max-w-md space-y-4 text-left" onSubmit={handleSubmit}>
         <h2 className="text-xl font-semibold">Get Started</h2>
         <p className="text-sm text-muted-foreground">
         Enter a link and press enter
@@ -45,21 +70,35 @@ export default function Home() {
           id="link"
           name="link"
           type="url"
+          value={link}
+          onChange={(event) => {
+            setLink(event.target.value);
+            if (error) {
+              setError("");
+            }
+          }}
+          onFocus={() => {
+            if (error) {
+              setError("");
+            }
+          }}
           placeholder="https://…"
           className="h-12 w-full rounded-md border border-border bg-background px-4 text-base outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
         />
         <Button
-          type="button"
+          type="submit"
           size="lg"
           className="h-12 w-full justify-center gap-2 sm:w-auto"
-          disabled
-          title="Editor access coming soon"
+          disabled={!link.trim()}
         >
           Start your list
           <ArrowRight className="size-4" aria-hidden="true" />
         </Button>
         </div>
-      </div>
+        {error && (
+          <p className="text-sm text-destructive">{error}</p>
+        )}
+      </form>
       </section>
     </main>
   );

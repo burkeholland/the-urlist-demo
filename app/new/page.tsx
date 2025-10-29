@@ -1,17 +1,51 @@
 "use client"
 
 import * as React from "react"
+import { useSearchParams } from "next/navigation"
 import { Plus, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 export default function NewListPage() {
+  const searchParams = useSearchParams()
+  const linkParam = searchParams.get("link")
+  const initialLink = React.useMemo(() => {
+    if (!linkParam) {
+      return null
+    }
+
+    try {
+      new URL(linkParam)
+      return linkParam
+    } catch {
+      return null
+    }
+  }, [linkParam])
+
   const [vanityUrl, setVanityUrl] = React.useState("")
   const [urlError, setUrlError] = React.useState("")
   const [description, setDescription] = React.useState("")
-  const [links, setLinks] = React.useState<string[]>([])
+  const [links, setLinks] = React.useState<string[]>(() => (initialLink ? [initialLink] : []))
   const [currentLink, setCurrentLink] = React.useState("")
+
+  React.useEffect(() => {
+    if (!initialLink) {
+      return
+    }
+
+    setLinks((existingLinks) => {
+      if (existingLinks.length === 0) {
+        return [initialLink]
+      }
+
+      if (existingLinks.includes(initialLink)) {
+        return existingLinks
+      }
+
+      return [initialLink, ...existingLinks]
+    })
+  }, [initialLink])
 
   const validateVanityUrl = (value: string) => {
     if (!value) {
@@ -50,7 +84,13 @@ export default function NewListPage() {
     // Validate URL format
     try {
       new URL(link)
-      setLinks([...links, link])
+      setLinks((prevLinks) => {
+        if (prevLinks.includes(link)) {
+          return prevLinks
+        }
+
+        return [...prevLinks, link]
+      })
       setCurrentLink("")
     } catch {
       // Invalid URL, don't add it

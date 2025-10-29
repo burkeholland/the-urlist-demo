@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useSearchParams } from "next/navigation"
-import { Plus, X } from "lucide-react"
+import { GripVertical, Plus, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -28,6 +28,7 @@ export default function NewListPage() {
   const [description, setDescription] = React.useState("")
   const [links, setLinks] = React.useState<string[]>(() => (initialLink ? [initialLink] : []))
   const [currentLink, setCurrentLink] = React.useState("")
+  const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null)
 
   React.useEffect(() => {
     if (!initialLink) {
@@ -107,6 +108,34 @@ export default function NewListPage() {
       e.preventDefault()
       handleAddLink()
     }
+  }
+
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index)
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, dropIndex: number) => {
+    e.preventDefault()
+    
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null)
+      return
+    }
+
+    const newLinks = [...links]
+    const [draggedItem] = newLinks.splice(draggedIndex, 1)
+    newLinks.splice(dropIndex, 0, draggedItem)
+    
+    setLinks(newLinks)
+    setDraggedIndex(null)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
   }
 
   return (
@@ -199,8 +228,17 @@ export default function NewListPage() {
                   {links.map((link, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-2 rounded-md border border-border bg-muted/50 p-3"
+                      draggable
+                      onDragStart={() => handleDragStart(index)}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, index)}
+                      onDragEnd={handleDragEnd}
+                      className={cn(
+                        "flex items-center gap-2 rounded-md border border-border bg-muted/50 p-3 cursor-move transition-opacity",
+                        draggedIndex === index && "opacity-40"
+                      )}
                     >
+                      <GripVertical className="size-4 text-muted-foreground shrink-0" aria-hidden="true" />
                       <span className="flex-1 truncate text-sm">{link}</span>
                       <Button
                         type="button"

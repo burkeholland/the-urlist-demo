@@ -224,7 +224,7 @@ export default function NewListPage() {
             {links.length > 0 && (
               <div className="space-y-2">
                 <p className="text-sm font-medium">Links in your list</p>
-                <div className="space-y-2">
+                <div className="space-y-2" role="list">
                   {links.map((link, index) => (
                     <div
                       key={index}
@@ -233,12 +233,14 @@ export default function NewListPage() {
                       onDragOver={handleDragOver}
                       onDrop={(e) => handleDrop(e, index)}
                       onDragEnd={handleDragEnd}
+                      role="listitem"
+                      aria-label={`Link ${index + 1}: ${link}`}
                       className={cn(
                         "flex items-center gap-2 rounded-md border border-border bg-muted/50 p-3 cursor-move transition-opacity",
                         draggedIndex === index && "opacity-40"
                       )}
                     >
-                      <GripVertical className="size-4 text-muted-foreground shrink-0" aria-hidden="true" />
+                      <GripVertical className="size-4 text-muted-foreground shrink-0" aria-hidden="true" title="Drag to reorder" />
                       <span className="flex-1 truncate text-sm">{link}</span>
                       <Button
                         type="button"

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { LogOut } from "lucide-react";
+import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -13,15 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-
-interface User {
-  id: string;
-  email?: string;
-  user_metadata?: {
-    avatar_url?: string;
-    full_name?: string;
-  };
-}
 
 interface UserMenuProps {
   user: User;
@@ -35,8 +27,7 @@ export function UserMenu({ user }: UserMenuProps) {
     try {
       const supabase = createClient();
       await supabase.auth.signOut();
-      // Reload to update UI
-      window.location.reload();
+      // The auth state listener in navbar.tsx will handle UI updates
     } catch (error) {
       console.error("Error logging out:", error);
     } finally {

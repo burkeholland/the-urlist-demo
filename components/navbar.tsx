@@ -57,6 +57,8 @@ export function Navbar() {
             size="icon"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
           >
             {mobileMenuOpen ? (
               <X className="size-5" aria-hidden="true" />
@@ -69,7 +71,11 @@ export function Navbar() {
 
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
-        <div className="border-t border-border md:hidden">
+        <div 
+          id="mobile-menu"
+          className="border-t border-border md:hidden"
+          role="menu"
+        >
           <div className="container space-y-1 py-4">
             {navItems.map((item) => {
               const Icon = item.icon

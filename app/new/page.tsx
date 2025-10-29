@@ -22,6 +22,12 @@ export default function NewListPage() {
     // Valid URL slug can include alphanumeric, hyphens, underscores, and paths with /
     const validPattern = /^[a-zA-Z0-9_-]+([\/][a-zA-Z0-9_-]+)*$/
     
+    // Check for consecutive slashes
+    if (value.includes("//")) {
+      setUrlError("Invalid URL slug. Consecutive slashes are not allowed.")
+      return false
+    }
+    
     if (!validPattern.test(value)) {
       setUrlError("Invalid URL slug. Use letters, numbers, hyphens, underscores, and forward slashes only.")
       return false
@@ -38,9 +44,17 @@ export default function NewListPage() {
   }
 
   const handleAddLink = () => {
-    if (currentLink.trim()) {
-      setLinks([...links, currentLink.trim()])
+    const link = currentLink.trim()
+    if (!link) return
+    
+    // Validate URL format
+    try {
+      new URL(link)
+      setLinks([...links, link])
       setCurrentLink("")
+    } catch {
+      // Invalid URL, don't add it
+      // Could add error state here if needed
     }
   }
 
@@ -167,7 +181,7 @@ export default function NewListPage() {
           {/* Submit Button */}
           <div className="flex gap-3 pt-4">
             <Button
-              type="submit"
+              type="button"
               size="lg"
               disabled={!vanityUrl || !!urlError || links.length === 0}
               className="flex-1"

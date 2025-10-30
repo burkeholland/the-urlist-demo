@@ -5,7 +5,22 @@ import { useSearchParams } from "next/navigation"
 import { Plus, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { arrayMove, cn } from "@/lib/utils"
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core"
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 
 export default function NewListPage() {
   const searchParams = useSearchParams()
@@ -28,6 +43,12 @@ export default function NewListPage() {
   const [description, setDescription] = React.useState("")
   const [links, setLinks] = React.useState<string[]>(() => (initialLink ? [initialLink] : []))
   const [currentLink, setCurrentLink] = React.useState("")
+  const [announcement, setAnnouncement] = React.useState("")
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor)
+  )
 
   React.useEffect(() => {
     if (!initialLink) {
@@ -107,6 +128,24 @@ export default function NewListPage() {
       e.preventDefault()
       handleAddLink()
     }
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (!over || active.id === over.id) {
+      return
+    }
+
+    const oldIndex = links.findIndex((link) => link === active.id)
+    const newIndex = links.findIndex((link) => link === over.id)
+
+    if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) {
+      return
+    }
+
+    setLinks((prevLinks) => arrayMove(prevLinks, oldIndex, newIndex))
+    setAnnouncement(`Moved link to position ${newIndex + 1}`)
   }
 
   return (
@@ -195,25 +234,27 @@ export default function NewListPage() {
             {links.length > 0 && (
               <div className="space-y-2">
                 <p className="text-sm font-medium">Links in your list</p>
-                <div className="space-y-2">
-                  {links.map((link, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 rounded-md border border-border bg-muted/50 p-3"
-                    >
-                      <span className="flex-1 truncate text-sm">{link}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => handleRemoveLink(index)}
-                        aria-label={`Remove ${link}`}
-                      >
-                        <X className="size-4" aria-hidden="true" />
-                      </Button>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext items={links} strategy={verticalListSortingStrategy}>
+                    <div className="space-y-2">
+                      {links.map((link, index) => (
+                        <SortableListItem
+                          key={link}
+                          id={link}
+                          link={link}
+                          onRemove={() => handleRemoveLink(index)}
+                        />
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </SortableContext>
+                </DndContext>
+                <span className="sr-only" role="status" aria-live="polite">
+                  {announcement}
+                </span>
               </div>
             )}
           </div>
@@ -246,5 +287,61 @@ export default function NewListPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+type SortableListItemProps = {
+  id: string
+  link: string
+  onRemove: () => void
+}
+
+function SortableListItem({ id, link, onRemove }: SortableListItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id })
+
+  const composedRef = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      setNodeRef(node)
+
+      if (!node) {
+        return
+      }
+
+      node.style.transform = transform ? CSS.Transform.toString(transform) : ""
+      node.style.transition = transition ?? ""
+    },
+    [setNodeRef, transform, transition]
+  )
+
+  return (
+    <div
+      ref={composedRef}
+      className={cn(
+        "flex items-center gap-2 rounded-md border border-border bg-muted/50 p-3",
+        isDragging && "ring-2 ring-primary shadow-md bg-background"
+      )}
+      {...attributes}
+      {...listeners}
+    >
+      <span className="flex-1 truncate text-sm" title={link}>
+        {link}
+      </span>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        onClick={onRemove}
+        aria-label={`Remove ${link}`}
+      >
+        <X className="size-4" aria-hidden="true" />
+      </Button>
+    </div>
   )
 }

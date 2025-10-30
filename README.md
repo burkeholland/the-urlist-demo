@@ -2,7 +2,30 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+1. A [Supabase](https://supabase.com) account and project
+2. Node.js and npm installed
+
+### Setup
+
+1. Clone the repository and install dependencies:
+
+```bash
+npm install
+```
+
+2. Create a `.env.local` file in the root directory and add your Supabase credentials:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
+
+You can find these values in your Supabase project settings at:
+`https://supabase.com/dashboard/project/_/settings/api`
+
+3. Run the development server:
 
 ```bash
 npm run dev
@@ -19,6 +42,23 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Authentication
+
+This project uses [Supabase Auth](https://supabase.com/docs/guides/auth) for user authentication. Features include:
+
+- Email/password authentication
+- Session management via middleware
+- User avatar dropdown with logout
+- No page redirects - authentication happens in-place with a modal dialog
+
+### Setting up Authentication in Supabase
+
+1. Go to your Supabase project dashboard
+2. Navigate to Authentication > Settings
+3. Configure your site URL and redirect URLs
+4. Enable Email provider in Authentication > Providers
+5. (Optional) Configure email templates in Authentication > Email Templates
 
 ## Learn More
 

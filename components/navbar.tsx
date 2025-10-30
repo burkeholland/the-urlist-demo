@@ -1,19 +1,45 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import Link from "next/link"
-import { Menu, X, Plus, Info, FileText, LogIn } from "lucide-react"
+import * as React from "react";
+import Link from "next/link";
+import { Menu, X, Plus, Info, FileText, LogIn } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
+import { LoginDialog } from "@/components/login-dialog";
+import { UserMenu } from "@/components/user-menu";
+import { createClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 const navItems = [
   { href: "/new", label: "New", icon: Plus },
   { href: "/about", label: "About", icon: Info },
   { href: "/terms", label: "Terms", icon: FileText },
-]
+];
 
 export function Navbar() {
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [loginDialogOpen, setLoginDialogOpen] = React.useState(false);
+  const [user, setUser] = React.useState<User | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const supabase = createClient();
+
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -41,13 +67,17 @@ export function Navbar() {
             })}
           </div>
 
-          {/* Login Button */}
-          <Button variant="outline" asChild>
-            <Link href="/login" className="gap-2">
+          {/* Login Button or User Menu */}
+          {loading ? (
+            <div className="size-9" />
+          ) : user ? (
+            <UserMenu user={user} />
+          ) : (
+            <Button variant="outline" onClick={() => setLoginDialogOpen(true)}>
               <LogIn className="size-4" aria-hidden="true" />
               Login
-            </Link>
-          </Button>
+            </Button>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -91,17 +121,27 @@ export function Navbar() {
                 </Link>
               )
             })}
-            <Link
-              href="/login"
-              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <LogIn className="size-4" aria-hidden="true" />
-              Login
-            </Link>
+            {loading ? null : user ? (
+              <div className="px-3 py-2">
+                <UserMenu user={user} />
+              </div>
+            ) : (
+              <button
+                className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground text-left"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setLoginDialogOpen(true);
+                }}
+              >
+                <LogIn className="size-4" aria-hidden="true" />
+                Login
+              </button>
+            )}
           </div>
         </div>
       )}
+
+      <LoginDialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen} />
     </header>
-  )
+  );
 }

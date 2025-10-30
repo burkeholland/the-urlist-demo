@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const featureHighlights = [
   {
@@ -36,9 +37,15 @@ export default function Home() {
     }
 
     try {
-      new URL(trimmedLink);
+      const url = new URL(trimmedLink);
+      // Normalize only the scheme and hostname to lowercase (case-insensitive parts)
+      // Path, query, and fragment are case-sensitive and should be preserved
+      url.protocol = url.protocol.toLowerCase();
+      url.hostname = url.hostname.toLowerCase();
+      const normalizedLink = url.toString();
+      
       setError("");
-      router.push(`/new?link=${encodeURIComponent(trimmedLink)}`);
+      router.push(`/new?link=${encodeURIComponent(normalizedLink)}`);
     } catch {
       setError("That link does not look valid. Try again.");
     }
@@ -83,7 +90,13 @@ export default function Home() {
             }
           }}
           placeholder="https://…"
-          className="h-12 w-full rounded-md border border-border bg-background px-4 text-base outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
+          className={cn(
+            "h-12 w-full rounded-md border bg-background px-4 text-base outline-none transition-all",
+            "focus-visible:ring-2 focus-visible:ring-primary/30",
+            error 
+              ? "border-destructive focus-visible:border-destructive" 
+              : "border-border focus-visible:border-primary"
+          )}
         />
         <Button
           type="submit"

@@ -45,21 +45,23 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background text-foreground">
-      <section className="flex w-full max-w-2xl flex-col items-center gap-8 px-6 text-center">
-      <div className="space-y-4">
-        <span className="text-xs font-semibold uppercase tracking-wide text-primary">
+    <main className="flex min-h-screen items-start justify-center bg-background text-foreground">
+      <section className="mt-12 sm:mt-16 flex w-full max-w-5xl flex-col items-center gap-8 px-6 text-center">
+      <header className="w-full p-10">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
         The Urlist
-        </span>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-        Group links, Save & Share them with the world
-        </h1>
-        <p className="text-base text-muted-foreground sm:text-lg">
-        Create a list of links and share it with one simple URL.
-        </p>
-      </div>
+          </span>
+          <h1 className="max-w-3xl bg-gradient-to-r from-primary via-primary/70 to-primary/30 bg-clip-text text-4xl font-semibold tracking-tight text-transparent sm:text-5xl">
+        Group links, save them, and share with the world
+          </h1>
+          <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
+        Collect every resource in one place, add context in seconds, and publish a beautiful list with a single link.
+          </p>
+        </div>
+      </header>
 
-      <form className="w-full max-w-md space-y-4 text-left" onSubmit={handleSubmit}>
+      <form className="w-full space-y-4 text-left mt-12" onSubmit={handleSubmit}>
         <h2 className="text-xl font-semibold">Get Started</h2>
         <p className="text-sm text-muted-foreground">
         Enter a link and press enter
@@ -72,18 +74,18 @@ export default function Home() {
           type="url"
           value={link}
           onChange={(event) => {
-            setLink(event.target.value);
-            if (error) {
-              setError("");
-            }
+        setLink(event.target.value);
+        if (error) {
+          setError("");
+        }
           }}
           onFocus={() => {
-            if (error) {
-              setError("");
-            }
+        if (error) {
+          setError("");
+        }
           }}
           placeholder="https://…"
-          className="h-12 w-full rounded-md border border-border bg-background px-4 text-base outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
+          className="text-lg h-12 w-full rounded-md border border-border bg-background px-4 text-base outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
         />
         <Button
           type="submit"

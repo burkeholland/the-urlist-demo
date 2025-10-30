@@ -17,7 +17,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <nav className="container mx-auto flex h-14 max-w-2xl items-center">
+      <nav className="container mx-auto flex h-14 max-w-5xl items-center">
         {/* Logo */}
         <Link href="/" className="mr-6 flex items-center space-x-2">
           <span className="text-lg font-semibold">The Urlist</span>

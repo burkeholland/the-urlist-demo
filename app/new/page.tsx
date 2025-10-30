@@ -111,7 +111,7 @@ export default function NewListPage() {
 
   return (
     <main className="flex min-h-screen items-start justify-center bg-background py-12 px-6">
-      <div className="w-full max-w-2xl space-y-8">
+      <div className="w-full max-w-5xl space-y-8">
         <div className="space-y-2">
           <h1 className="text-3xl font-semibold tracking-tight">Create a new list</h1>
           <p className="text-base text-muted-foreground">

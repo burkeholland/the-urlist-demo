@@ -2,10 +2,85 @@
 
 import * as React from "react"
 import { useSearchParams } from "next/navigation"
-import { Plus, X } from "lucide-react"
+import { GripVertical, Plus, X } from "lucide-react"
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+} from "@dnd-kit/core"
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+
+interface SortableItemProps {
+  id: string
+  link: string
+  index: number
+  isDragging: boolean
+  onRemove: (index: number) => void
+}
+
+function SortableItem({ id, link, index, isDragging, onRemove }: SortableItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging,
+  } = useSortable({ id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      role="listitem"
+      aria-label={`Link ${index + 1}: ${link}`}
+      className={cn(
+        "flex items-center gap-2 rounded-md border border-border bg-muted/50 p-3 transition-opacity",
+        (isDragging || isSortableDragging) && "opacity-40"
+      )}
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-move touch-none"
+        aria-label="Drag to reorder"
+      >
+        <GripVertical className="size-4 text-muted-foreground shrink-0" aria-hidden="true" title="Drag to reorder" />
+      </div>
+      <span className="flex-1 truncate text-sm">{link}</span>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        onClick={() => onRemove(index)}
+        aria-label={`Remove ${link}`}
+      >
+        <X className="size-4" aria-hidden="true" />
+      </Button>
+    </div>
+  )
+}
+
 
 export default function NewListPage() {
   const searchParams = useSearchParams()
@@ -28,6 +103,14 @@ export default function NewListPage() {
   const [description, setDescription] = React.useState("")
   const [links, setLinks] = React.useState<string[]>(() => (initialLink ? [initialLink] : []))
   const [currentLink, setCurrentLink] = React.useState("")
+  const [activeId, setActiveId] = React.useState<string | null>(null)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
 
   React.useEffect(() => {
     if (!initialLink) {
@@ -107,6 +190,24 @@ export default function NewListPage() {
       e.preventDefault()
       handleAddLink()
     }
+  }
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string)
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (over && active.id !== over.id) {
+      setLinks((items) => {
+        const oldIndex = items.indexOf(active.id as string)
+        const newIndex = items.indexOf(over.id as string)
+        return arrayMove(items, oldIndex, newIndex)
+      })
+    }
+
+    setActiveId(null)
   }
 
   return (
@@ -195,25 +296,30 @@ export default function NewListPage() {
             {links.length > 0 && (
               <div className="space-y-2">
                 <p className="text-sm font-medium">Links in your list</p>
-                <div className="space-y-2">
-                  {links.map((link, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 rounded-md border border-border bg-muted/50 p-3"
-                    >
-                      <span className="flex-1 truncate text-sm">{link}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => handleRemoveLink(index)}
-                        aria-label={`Remove ${link}`}
-                      >
-                        <X className="size-4" aria-hidden="true" />
-                      </Button>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={links}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-2" role="list">
+                      {links.map((link, index) => (
+                        <SortableItem
+                          key={link}
+                          id={link}
+                          link={link}
+                          index={index}
+                          isDragging={activeId === link}
+                          onRemove={handleRemoveLink}
+                        />
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </SortableContext>
+                </DndContext>
               </div>
             )}
           </div>

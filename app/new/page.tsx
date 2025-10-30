@@ -84,12 +84,15 @@ export default function NewListPage() {
     const link = currentLink.trim()
     if (!link) return
     
-    // Normalize URL to lowercase
-    const normalizedLink = link.toLowerCase()
-    
     // Validate URL format
     try {
-      new URL(normalizedLink)
+      const url = new URL(link)
+      // Normalize only the scheme and hostname to lowercase (case-insensitive parts)
+      // Path, query, and fragment are case-sensitive and should be preserved
+      url.protocol = url.protocol.toLowerCase()
+      url.hostname = url.hostname.toLowerCase()
+      const normalizedLink = url.toString()
+      
       setLinks((prevLinks) => {
         if (prevLinks.includes(normalizedLink)) {
           return prevLinks

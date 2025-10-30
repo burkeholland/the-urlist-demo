@@ -36,11 +36,14 @@ export default function Home() {
       return;
     }
 
-    // Normalize URL to lowercase
-    const normalizedLink = trimmedLink.toLowerCase();
-
     try {
-      new URL(normalizedLink);
+      const url = new URL(trimmedLink);
+      // Normalize only the scheme and hostname to lowercase (case-insensitive parts)
+      // Path, query, and fragment are case-sensitive and should be preserved
+      url.protocol = url.protocol.toLowerCase();
+      url.hostname = url.hostname.toLowerCase();
+      const normalizedLink = url.toString();
+      
       setError("");
       router.push(`/new?link=${encodeURIComponent(normalizedLink)}`);
     } catch {

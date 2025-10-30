@@ -28,6 +28,7 @@ export default function NewListPage() {
   const [description, setDescription] = React.useState("")
   const [links, setLinks] = React.useState<string[]>(() => (initialLink ? [initialLink] : []))
   const [currentLink, setCurrentLink] = React.useState("")
+  const [linkError, setLinkError] = React.useState("")
 
   React.useEffect(() => {
     if (!initialLink) {
@@ -73,28 +74,34 @@ export default function NewListPage() {
 
   const handleVanityUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
-    setVanityUrl(value)
-    validateVanityUrl(value)
+    // Normalize vanity URL to lowercase
+    const normalizedValue = value.toLowerCase()
+    setVanityUrl(normalizedValue)
+    validateVanityUrl(normalizedValue)
   }
 
   const handleAddLink = () => {
     const link = currentLink.trim()
     if (!link) return
     
+    // Normalize URL to lowercase
+    const normalizedLink = link.toLowerCase()
+    
     // Validate URL format
     try {
-      new URL(link)
+      new URL(normalizedLink)
       setLinks((prevLinks) => {
-        if (prevLinks.includes(link)) {
+        if (prevLinks.includes(normalizedLink)) {
           return prevLinks
         }
 
-        return [...prevLinks, link]
+        return [...prevLinks, normalizedLink]
       })
       setCurrentLink("")
+      setLinkError("")
     } catch {
-      // Invalid URL, don't add it
-      // Could add error state here if needed
+      // Invalid URL, show error
+      setLinkError("That link does not look valid. Try again.")
     }
   }
 
@@ -174,10 +181,21 @@ export default function NewListPage() {
                   id="link-input"
                   type="url"
                   value={currentLink}
-                  onChange={(e) => setCurrentLink(e.target.value)}
+                  onChange={(e) => {
+                    setCurrentLink(e.target.value)
+                    if (linkError) {
+                      setLinkError("")
+                    }
+                  }}
                   onKeyPress={handleLinkKeyPress}
                   placeholder="https://example.com"
-                  className="flex-1 h-10 rounded-md border border-border bg-background px-3 text-sm outline-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
+                  className={cn(
+                    "flex-1 h-10 rounded-md border bg-background px-3 text-sm outline-none transition-all",
+                    "focus-visible:ring-2 focus-visible:ring-primary/30",
+                    linkError
+                      ? "border-destructive focus-visible:border-destructive"
+                      : "border-border focus-visible:border-primary"
+                  )}
                 />
                 <Button
                   type="button"
@@ -189,6 +207,9 @@ export default function NewListPage() {
                   Add
                 </Button>
               </div>
+              {linkError && (
+                <p className="text-sm text-destructive">{linkError}</p>
+              )}
             </div>
 
             {/* Display added links */}
@@ -238,6 +259,7 @@ export default function NewListPage() {
                 setLinks([])
                 setCurrentLink("")
                 setUrlError("")
+                setLinkError("")
               }}
             >
               Reset

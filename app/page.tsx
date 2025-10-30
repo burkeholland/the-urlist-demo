@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const featureHighlights = [
   {
@@ -35,10 +36,13 @@ export default function Home() {
       return;
     }
 
+    // Normalize URL to lowercase
+    const normalizedLink = trimmedLink.toLowerCase();
+
     try {
-      new URL(trimmedLink);
+      new URL(normalizedLink);
       setError("");
-      router.push(`/new?link=${encodeURIComponent(trimmedLink)}`);
+      router.push(`/new?link=${encodeURIComponent(normalizedLink)}`);
     } catch {
       setError("That link does not look valid. Try again.");
     }
@@ -83,7 +87,13 @@ export default function Home() {
             }
           }}
           placeholder="https://…"
-          className="h-12 w-full rounded-md border border-border bg-background px-4 text-base outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
+          className={cn(
+            "h-12 w-full rounded-md border bg-background px-4 text-base outline-none transition-all",
+            "focus-visible:ring-2 focus-visible:ring-primary/30",
+            error 
+              ? "border-destructive focus-visible:border-destructive" 
+              : "border-border focus-visible:border-primary"
+          )}
         />
         <Button
           type="submit"
